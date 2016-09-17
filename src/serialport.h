@@ -67,7 +67,6 @@ struct OpenBaton {
   int result;
   int baudRate;
   int dataBits;
-  int bufferSize;
   bool rtscts;
   bool xon;
   bool xoff;

@@ -129,7 +129,6 @@ NAN_METHOD(Open) {
   strcpy(baton->path, *path);
   baton->baudRate = getIntFromObject(options, "baudRate");
   baton->dataBits = getIntFromObject(options, "dataBits");
-  baton->bufferSize = getIntFromObject(options, "bufferSize");
   baton->parity = ToParityEnum(getStringFromObj(options, "parity"));
   baton->stopBits = ToStopBitEnum(getDoubleFromObject(options, "stopBits"));
   baton->rtscts = getBoolFromObject(options, "rtscts");

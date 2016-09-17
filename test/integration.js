@@ -15,12 +15,15 @@ switch (process.platform) {
     platform = 'unix';
 }
 
+var readyData = new Buffer('READY');
+
 // test everything on our mock biding and natively
 var defaultBinding = SerialPort.Binding;
 var mockBinding = require('../lib/bindings-mock');
 
 var mockTestPort = '/dev/exists';
-mockBinding.createPort(mockTestPort, { echo: true });
+mockBinding.createPort(mockTestPort, { echo: true, readyData: readyData });
+
 // eslint-disable-next-line no-use-before-define
 integrationTest('mock', mockTestPort, mockBinding);
 
@@ -144,23 +147,27 @@ function integrationTest(platform, testPort, binding) {
     });
 
     describe('#read and #write', function() {
-      it('writes 5k and reads it back', function(done) {
+      it('5k test', function(done) {
         this.timeout(20000);
         // 5k of random ascii
-        var output = new Buffer(crypto.randomBytes(5000).toString('ascii'));
-        var expectedInput = Buffer.concat([new Buffer('READY'), output]);
+        var output = new Buffer(crypto.randomBytes(5120).toString('ascii'));
+        var expectedInput = Buffer.concat([readyData, output]);
         var port = new SerialPort(testPort);
 
         // this will trigger from the "READY" the arduino sends when it's... ready
         port.once('data', function() {
+          console.log('got READY');
           port.write(output);
         });
 
         var input = new Buffer(0);
         port.on('data', function(data) {
+          console.log('data emitted ' + data.length + ' bytes');
+          // console.log(port);
           input = Buffer.concat([input, data]);
-          if (input.length === expectedInput.length) {
-            assert.deepEqual(expectedInput, input);
+          if (input.length >= expectedInput.length) {
+            assert.equal(input.length, expectedInput.length);
+            assert.deepEqual(input, expectedInput);
             port.close(done);
           }
         });
